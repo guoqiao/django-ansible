@@ -1,0 +1,56 @@
+---
+# vim:ff=unix ts=2 sw=2 ai expandtab
+
+- name: Provision a ubuntu server
+  hosts: ubuntu
+  remote_user: root
+  tasks:
+    - name: install debian packages
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - python-pip
+        - python3-dev
+        - silversearcher-ag
+        - htop
+        - tmux
+        - tree
+        - uwsgi
+        - git
+        - zsh
+        - vim
+
+    - name: create system user if not exist
+      user:
+        name: "{{ user }}"
+        shell: /usr/bin/zsh
+        groups: sudo
+        append: yes
+        generate_ssh_key: yes
+        ssh_key_comment: "{{ user }}@{{ site_name }}"
+
+    - name: create dirs
+      file:
+        state: directory
+        path: "/home/{{ user }}/{{ item }}"
+      with_items:
+        - git
+        - env
+        - db
+        - log
+        - static
+        - media
+
+    - name: git config alias
+      git_config:
+        scope: system
+        name: "{{ item.name }}"
+        value:  "{{ item.value }}"
+      with_items:
+        - { name: "alias.br", value: "branch"}
+        - { name: "alias.co", value: "checkout"}
+        - { name: "alias.ci", value: "commit"}
+        - { name: "alias.st", value: "status"}
+        - { name: "color.ui", value: "true"}

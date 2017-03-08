@@ -1,0 +1,21 @@
+---
+# vim:ff=unix ts=2 sw=2 ai expandtab
+
+- name: Provision a nginx server
+  hosts: nginx
+  remote_user: root
+  tasks:
+
+    - name: install nginx
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - nginx
+
+    - name: change nginx user
+      lineinfile:
+        dest: /etc/nginx/nginx.conf
+        regexp: "^user www-data;"
+        line: "user {{ user }};"

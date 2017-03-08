@@ -1,0 +1,28 @@
+[all:vars]
+# system user name used to deploy site
+user=ubuntu
+
+# settings, e.g.: dev, prod, test, staging
+env=dev
+
+# used for settings path, e.g.: example.settings.dev
+site_name=example
+site_scheme=http
+site_domain=dev.example.com
+
+git_repo=git@bitbucket.org:example/example.git
+git_branch=dev
+# git clone dest dir name, used everywhere as project unique name
+git_dest=example-dev
+
+[ubuntu]
+dev.example.com
+
+[postgresql]
+dev.example.com
+
+[django]
+dev.example.com
+
+[nginx]
+dev.example.com

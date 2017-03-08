@@ -1,0 +1,15 @@
+---
+# vim:ff=unix ts=2 sw=2 ai expandtab
+
+- name: Provision a postgresql server
+  hosts: postgresql
+  remote_user: root
+  tasks:
+    - name: install postgresql
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      with_items:
+        - postgresql
+        - postgresql-contrib

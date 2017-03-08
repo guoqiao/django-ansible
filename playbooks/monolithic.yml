@@ -1,0 +1,10 @@
+---
+# vim:ff=unix ts=2 sw=2 ai expandtab
+
+- include: ubuntu.yml
+
+- include: django.yml
+
+- include: nginx.yml
+
+- include: postgresql.yml
