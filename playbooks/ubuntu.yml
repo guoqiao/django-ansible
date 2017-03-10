@@ -22,14 +22,36 @@
         - zsh
         - vim
 
-    - name: create system user if not exist
+    - name: set root user shell
+      user:
+        name: root
+        shell: /usr/bin/zsh
+        generate_ssh_key: yes
+        ssh_key_comment: "{{ user }}@{{ site_name }}"
+
+    - name: git clone oh-my-zsh
+      git:
+        repo: git://github.com/robbyrussell/oh-my-zsh.git
+        dest: ~/.oh-my-zsh
+        accept_hostkey: yes
+
+    - name: copy oh-my-zsh zshrc
+      copy:
+        remote_src: True
+        src: ~/.oh-my-zsh/templates/zshrc.zsh-template
+        dest: ~/.zshrc
+        force: no
+
+    - name: change oh-my-zsh theme
+      lineinfile:
+        dest: ~/.zshrc
+        regexp: "^ZSH_THEME"
+        line: 'ZSH_THEME="zhann"'
+
+    - name: create system user
       user:
         name: "{{ user }}"
         shell: /usr/bin/zsh
-        groups: sudo
-        append: yes
-        generate_ssh_key: yes
-        ssh_key_comment: "{{ user }}@{{ site_name }}"
 
     - name: create dirs
       file:

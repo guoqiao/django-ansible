@@ -33,7 +33,7 @@
         - static
         - media
 
-    - name: git clone
+    - name: git clone django repo
       git:
         repo: "{{ git_repo }}"
         version: "{{ git_branch }}"
