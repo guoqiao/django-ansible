@@ -3,10 +3,11 @@
 
 - name: Provision a django server
   hosts: django
-  remote_user: root
+  remote_user: ubuntu
   tasks:
 
     - name: install packages
+      become: true
       apt:
         name: "{{ item }}"
         state: latest
@@ -17,6 +18,7 @@
         - uwsgi
 
     - name: install system python packages
+      become: true
       pip:
         name: "{{ item }}"
         state: latest
@@ -27,7 +29,7 @@
     - name: create project subdir in parent dir
       file:
         state: directory
-        path: "/home/{{ user }}/{{ item }}/{{ git_dest }}"
+        path: "{{ item }}/{{ git_dest }}"
       with_items:
         - log
         - static
@@ -37,11 +39,10 @@
       git:
         repo: "{{ git_repo }}"
         version: "{{ git_branch }}"
-        dest: "/home/{{ user }}/git/{{ git_dest }}"
+        dest: "git/{{ git_dest }}"
         accept_hostkey: yes
 
     - name: create virtualenv and install requirements
-      become_user: "{{ user }}"
       pip:
         virtualenv_python: python3
         virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
@@ -51,7 +52,7 @@
       become_user: "{{ user }}"
       django_manage:
         command: migrate --fake-initial
-        app_path: "/home/{{ user }}/git/{{ git_dest }}"
+        app_path: "git/{{ git_dest }}"
         settings: "{{ site_name }}.settings.{{ env }}"
         virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
 
@@ -59,7 +60,7 @@
       become_user: "{{ user }}"
       django_manage:
         command: collectstatic --no-input
-        app_path: "/home/{{ user }}/git/{{ git_dest }}"
+        app_path: "git/{{ git_dest }}"
         settings: "{{ site_name }}.settings.{{ env }}"
         virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
 

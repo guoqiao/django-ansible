@@ -3,10 +3,11 @@
 
 - name: Provision a nginx server
   hosts: nginx
-  remote_user: root
+  remote_user: ubuntu
   tasks:
 
     - name: install nginx
+      become: true
       apt:
         name: "{{ item }}"
         state: latest
@@ -15,6 +16,7 @@
         - nginx
 
     - name: change nginx user
+      become: true
       lineinfile:
         dest: /etc/nginx/nginx.conf
         regexp: "^user www-data;"

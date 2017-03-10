@@ -3,9 +3,10 @@
 
 - name: Provision a postgresql server
   hosts: postgresql
-  remote_user: root
+  remote_user: ubuntu
   tasks:
     - name: install postgresql
+      become: true
       apt:
         name: "{{ item }}"
         state: latest

@@ -3,9 +3,10 @@
 
 - name: Provision a ubuntu server
   hosts: ubuntu
-  remote_user: root
+  remote_user: ubuntu
   tasks:
     - name: install debian packages
+      become: true
       apt:
         name: "{{ item }}"
         state: latest
@@ -22,9 +23,10 @@
         - zsh
         - vim
 
-    - name: set root user shell
+    - name: change shell to zsh
+      become: true
       user:
-        name: root
+        name: "{{ user }}"
         shell: /usr/bin/zsh
         generate_ssh_key: yes
         ssh_key_comment: "{{ user }}@{{ site_name }}"
@@ -48,15 +50,10 @@
         regexp: "^ZSH_THEME"
         line: 'ZSH_THEME="zhann"'
 
-    - name: create system user
-      user:
-        name: "{{ user }}"
-        shell: /usr/bin/zsh
-
     - name: create dirs
       file:
         state: directory
-        path: "/home/{{ user }}/{{ item }}"
+        path: "~/{{ item }}"
       with_items:
         - git
         - env
