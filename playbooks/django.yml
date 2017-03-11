@@ -4,32 +4,16 @@
 - name: Provision a django server
   hosts: django
   remote_user: ubuntu
+  vars:
+    - home: "/home/{{ user }}"
+    - app_path: "{{ home }}/git/{{ site_name }}"
+    - virtualenv: "{{ home }}/env/{{ site_name }}"
   tasks:
 
-    - name: install packages
-      become: true
-      apt:
-        name: "{{ item }}"
-        state: latest
-        update_cache: yes
-      with_items:
-        - python-pip
-        - python3-dev
-        - uwsgi
-
-    - name: install system python packages
-      become: true
-      pip:
-        name: "{{ item }}"
-        state: latest
-      with_items:
-        - virtualenv
-        - virtualenvwrapper
-
-    - name: create project subdir in parent dir
+    - name: create project dirs
       file:
         state: directory
-        path: "{{ item }}/{{ git_dest }}"
+        path: "{{ item }}/{{ site_name }}"
       with_items:
         - log
         - static
@@ -39,35 +23,54 @@
       git:
         repo: "{{ git_repo }}"
         version: "{{ git_branch }}"
-        dest: "git/{{ git_dest }}"
+        dest: "{{ app_path }}"
         accept_hostkey: yes
 
     - name: create virtualenv and install requirements
       pip:
         virtualenv_python: python3
-        virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
-        requirements: "/home/{{ user }}/git/{{ git_dest }}/requirements.txt"
+        virtualenv: "{{ virtualenv }}"
+        requirements: "{{ app_path }}/requirements.txt"
 
-    - name: migrate django database
-      become_user: "{{ user }}"
+    - name: django migrate
       django_manage:
         command: migrate --fake-initial
-        app_path: "git/{{ git_dest }}"
-        settings: "{{ site_name }}.settings.{{ env }}"
-        virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
+        app_path: "{{ app_path }}"
+        settings: "{{ settings }}"
+        virtualenv: "{{ virtualenv }}"
 
-    - name: collect django static
-      become_user: "{{ user }}"
+    - name: django collectstatic
       django_manage:
         command: collectstatic --no-input
-        app_path: "git/{{ git_dest }}"
-        settings: "{{ site_name }}.settings.{{ env }}"
-        virtualenv: "/home/{{ user }}/env/{{ git_dest }}"
+        app_path: "{{ app_path }}"
+        settings: "{{ settings }}"
+        virtualenv: "{{ virtualenv }}"
+
+    - name: render supervisor conf
+      become: true
+      template:
+        src: "../templates/supervisor_app.conf"
+        dest: "/etc/supervisor/conf.d/{{ site_name }}.conf"
+
+    - name: supervisorctl update
+      become: true
+      command: "supervisorctl update"
+
+    - name: supervisorctl restart site
+      become: true
+      command: "supervisorctl restart {{ site_name }}:"
 
     - name: chown home
+      become: true
       file:
         state: directory
-        path: "/home/{{ user }}"
         recurse: yes
+        path: "{{ home }}"
         owner: "{{ user }}"
         group: "{{ user }}"
+
+    - name: render nginx conf
+      become: true
+      template:
+        src: "../templates/nginx_gunicorn.conf"
+        dest: "/etc/nginx/conf.d/{{ site_name }}.conf"

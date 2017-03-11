@@ -1,10 +1,14 @@
 ---
 # vim:ff=unix ts=2 sw=2 ai expandtab
 
+
+# common setup for a ubuntu server
+# should not contain any project info
 - name: Provision a ubuntu server
   hosts: ubuntu
-  remote_user: ubuntu
+  remote_user: "{{ user }}"
   tasks:
+
     - name: install debian packages
       become: true
       apt:
@@ -14,14 +18,34 @@
       with_items:
         - python-pip
         - python3-dev
+        - virtualenv
+        - virtualenvwrapper
         - silversearcher-ag
         - htop
         - tmux
         - tree
-        - uwsgi
+        - supervisor
         - git
         - zsh
         - vim
+
+    - name: start supervisor service
+      service:
+        name: supervisor
+        state: started
+        enabled: yes
+
+    - name: git config alias
+      git_config:
+        scope: system
+        name: "{{ item.name }}"
+        value:  "{{ item.value }}"
+      with_items:
+        - { name: "alias.br", value: "branch"}
+        - { name: "alias.co", value: "checkout"}
+        - { name: "alias.ci", value: "commit"}
+        - { name: "alias.st", value: "status"}
+        - { name: "color.ui", value: "true"}
 
     - name: change shell to zsh
       become: true
@@ -57,19 +81,6 @@
       with_items:
         - git
         - env
-        - db
         - log
         - static
         - media
-
-    - name: git config alias
-      git_config:
-        scope: system
-        name: "{{ item.name }}"
-        value:  "{{ item.value }}"
-      with_items:
-        - { name: "alias.br", value: "branch"}
-        - { name: "alias.co", value: "checkout"}
-        - { name: "alias.ci", value: "commit"}
-        - { name: "alias.st", value: "status"}
-        - { name: "color.ui", value: "true"}

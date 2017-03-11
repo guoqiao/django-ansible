@@ -1,11 +1,13 @@
 ---
 # vim:ff=unix ts=2 sw=2 ai expandtab
 
+
 - name: Provision a nginx server
   hosts: nginx
-  remote_user: ubuntu
+  remote_user: "{{ user }}"
+  vars:
+    - home: "/home/{{ user }}"
   tasks:
-
     - name: install nginx
       become: true
       apt:
@@ -18,6 +20,23 @@
     - name: change nginx user
       become: true
       lineinfile:
+        backrefs: yes
         dest: /etc/nginx/nginx.conf
         regexp: "^user www-data;"
         line: "user {{ user }};"
+
+    - name: render static and media nginx conf
+      become: true
+      template:
+        src: "../templates/nginx_staticfiles.conf"
+        dest: "/etc/nginx/conf.d/{{ item }}.conf"
+      with_items:
+        - static
+        - media
+
+    - name: restart nginx service
+      become: true
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
