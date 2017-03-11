@@ -19,14 +19,14 @@
         - static
         - media
 
-    - name: git clone django repo
+    - name: git clone
       git:
         repo: "{{ git_repo }}"
         version: "{{ git_branch }}"
         dest: "{{ app_path }}"
         accept_hostkey: yes
 
-    - name: create virtualenv and install requirements
+    - name: create virtualenv with requirements
       pip:
         virtualenv_python: python3
         virtualenv: "{{ virtualenv }}"
@@ -60,7 +60,19 @@
       template:
         src: "../templates/supervisor_app.conf"
         dest: "/etc/supervisor/conf.d/{{ site_name }}.conf"
+      notify:
+      - supervisorctl update
+      - supervisorctl restart site
 
+    - name: render nginx conf
+      become: true
+      template:
+        src: "../templates/nginx_gunicorn.conf"
+        dest: "/etc/nginx/conf.d/{{ site_name }}.conf"
+      notify:
+      - restart nginx
+
+  handlers:
     - name: supervisorctl update
       become: true
       command: "supervisorctl update"
@@ -68,16 +80,3 @@
     - name: supervisorctl restart site
       become: true
       command: "supervisorctl restart {{ site_name }}:"
-
-    - name: render nginx conf
-      become: true
-      template:
-        src: "../templates/nginx_gunicorn.conf"
-        dest: "/etc/nginx/conf.d/{{ site_name }}.conf"
-
-    - name: restart nginx service
-      become: true
-      service:
-        name: nginx
-        state: restarted
-        enabled: yes
