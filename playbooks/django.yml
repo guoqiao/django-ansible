@@ -46,6 +46,15 @@
         settings: "{{ settings }}"
         virtualenv: "{{ virtualenv }}"
 
+    - name: chown home
+      become: true
+      file:
+        state: directory
+        recurse: yes
+        path: "{{ home }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
     - name: render supervisor conf
       become: true
       template:
@@ -60,17 +69,15 @@
       become: true
       command: "supervisorctl restart {{ site_name }}:"
 
-    - name: chown home
-      become: true
-      file:
-        state: directory
-        recurse: yes
-        path: "{{ home }}"
-        owner: "{{ user }}"
-        group: "{{ user }}"
-
     - name: render nginx conf
       become: true
       template:
         src: "../templates/nginx_gunicorn.conf"
         dest: "/etc/nginx/conf.d/{{ site_name }}.conf"
+
+    - name: restart nginx service
+      become: true
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes

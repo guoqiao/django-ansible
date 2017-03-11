@@ -18,8 +18,9 @@
       with_items:
         - python-pip
         - python3-dev
-        - virtualenv
-        - virtualenvwrapper
+        - python-psycopg2
+        - postgresql
+        - postgresql-contrib
         - silversearcher-ag
         - htop
         - tmux
@@ -28,6 +29,15 @@
         - git
         - zsh
         - vim
+
+    - name: install python packages
+      become: true
+      pip:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - virtualenv
+        - virtualenvwrapper
 
     - name: start supervisor service
       service:

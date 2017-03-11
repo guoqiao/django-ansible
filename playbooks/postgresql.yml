@@ -3,14 +3,16 @@
 
 - name: Provision a postgresql server
   hosts: postgresql
-  remote_user: ubuntu
+  remote_user: root
+  become: yes
+  become_user: postgres
   tasks:
-    - name: install postgresql
-      become: true
-      apt:
-        name: "{{ item }}"
-        state: latest
-        update_cache: yes
-      with_items:
-        - postgresql
-        - postgresql-contrib
+
+    - name: create postgresql user
+      postgresql_user:
+        name: "{{ user }}"
+
+    - name: create postgresql db
+      postgresql_db:
+        name: "{{ site_name }}"
+        owner: "{{ user }}"
