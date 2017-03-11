@@ -3,8 +3,8 @@
 
 - include: ubuntu.yml
 
-- include: django.yml
-
 - include: nginx.yml
 
 - include: postgresql.yml
+
+- include: django.yml
