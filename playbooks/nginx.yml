@@ -33,8 +33,11 @@
       with_items:
         - static
         - media
+      notify:
+      - restart nginx
 
-    - name: restart nginx service
+  handlers:
+    - name: restart nginx
       become: true
       service:
         name: nginx
