@@ -16,3 +16,11 @@
       postgresql_db:
         name: "{{ site_name }}"
         owner: "{{ user }}"
+
+  handlers:
+    - name: restart postgresql
+      become: true
+      service:
+        name: postgresql
+        state: restarted
+        enabled: yes
